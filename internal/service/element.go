@@ -26,12 +26,13 @@ func (
 ) error {
 	now := time.Now().UTC()
 	for i := range names {
-		name := names[i]
-		if strings.TrimSpace(name) == "" {
+		name := strings.TrimSpace(names[i])
+		if name == "" {
 			continue
 		}
-		element := domain.Element{ID: ids.New("element"), UserID: userID, Name: name, Kind: text.KindFor(name), Count: 1, CreatedAt: now, UpdatedAt: now}
-		existing := s.find(userID, name, element.Kind)
+		kind := text.KindFor(name)
+		element := domain.Element{ID: ids.New("element"), UserID: userID, Name: name, Kind: kind, Count: 1, CreatedAt: now, UpdatedAt: now}
+		existing := s.find(userID, name, kind)
 		if existing.ID != "" {
 			element = existing
 			element.Count++
@@ -94,7 +95,7 @@ func (
 	items := s.store.ListElements(userID)
 	for i := range items {
 		item := items[i]
-		if item.Name == name && item.Kind == kind {
+		if strings.EqualFold(item.Name, name) && item.Kind == kind {
 			return item
 		}
 	}

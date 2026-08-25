@@ -14,7 +14,7 @@ func (
 ) error {
 	return s.Update(func(data *domain.Database) error {
 		for id, current := range data.Elements {
-			if current.UserID == element.UserID && current.Name == element.Name && current.Kind == element.Kind {
+			if current.UserID == element.UserID && strings.EqualFold(current.Name, element.Name) && current.Kind == element.Kind {
 				element.ID, element.CreatedAt = id, current.CreatedAt
 			}
 		}
