@@ -1,0 +1,127 @@
+{
+  "status": "reserved",
+  "reservation_id": "f5483a3e4a56b0f81cd2",
+  "created_at": "2026-08-24T10:31:50+00:00",
+  "date": "2026-08-24",
+  "tier": "large",
+  "path": "/Users/tog_11/code/我的go/30个/dream-narrative-analysis-workbench-117",
+  "summary": {
+    "name": "梦境叙事与睡眠线索分析工作台",
+    "readme_language": "zh-CN",
+    "core_problem": "个人用户记录梦境时信息容易在醒来后快速丢失，单次记录又难以解释重复出现的叙事线索、梦中元素和睡眠情绪关联；系统需要把碎片化叙事转成可检索、可解释、可回看的个人梦境档案。",
+    "users": [
+      "希望长期记录梦境的个人用户",
+      "关注睡眠与情绪关系的自我观察者",
+      "需要整理创作灵感素材的写作者"
+    ],
+    "domain_objects": [
+      "用户档案",
+      "梦境记录",
+      "梦境元素",
+      "主题线索",
+      "情绪观测",
+      "睡眠片段",
+      "周报快照",
+      "词云词项",
+      "分析任务"
+    ],
+    "workflows": [
+      "注册或恢复个人工作台并建立本地会话",
+      "在醒来后记录叙事、清晰度、情绪、睡眠时长和细节记忆",
+      "从标题与正文提取元素候选并允许用户修订分类",
+      "按规则匹配重复主题并记录主题置信度与证据词",
+      "按时间窗口计算情绪、睡眠、清晰度和主题的关联趋势",
+      "生成可解释的梦境周报并导出 Markdown 或 JSON 备份"
+    ],
+    "rules": [
+      "梦境记录必须有标题、正文、发生日期、醒来时间和有效清晰度",
+      "睡眠时长只能在 0 到 24 小时之间，清晰度只能在 1 到 10 之间",
+      "元素分类必须来自人物、动物、地点、物品、动作、颜色、自然七类之一",
+      "主题命中至少需要一个证据词，重复主题按记录数和最近出现时间排序",
+      "关联分析只使用同一用户且落在查询窗口内的完整记录",
+      "周报快照由分析结果生成，原始梦境修改后必须标记为待刷新"
+    ],
+    "modules": [
+      "领域模型与输入不变量",
+      "JSON 持久化与快照索引",
+      "梦境记录应用服务",
+      "元素推荐与主题识别",
+      "情绪睡眠关联分析",
+      "词云和周报生成",
+      "认证、会话和请求中间件",
+      "后台刷新与失败重试",
+      "HTTP API 与导出适配",
+      "中文浏览器工作台"
+    ],
+    "api_surface": [
+      "POST /api/v1/auth/register",
+      "POST /api/v1/auth/login",
+      "GET /api/v1/session",
+      "POST /api/v1/dreams",
+      "GET /api/v1/dreams",
+      "GET /api/v1/dreams/{id}",
+      "PUT /api/v1/dreams/{id}",
+      "DELETE /api/v1/dreams/{id}",
+      "GET /api/v1/elements/suggestions",
+      "GET /api/v1/analysis/overview",
+      "GET /api/v1/analysis/themes",
+      "GET /api/v1/analysis/emotions",
+      "GET /api/v1/analysis/wordcloud",
+      "GET /api/v1/reports/weekly",
+      "GET /api/v1/export/markdown",
+      "GET /api/v1/export/json"
+    ],
+    "frontend": {
+      "technology": "原生 HTML、CSS、JavaScript，使用 Go embed 提供真实浏览器页面",
+      "entrypoint": "web/index.html",
+      "api_calls": [
+        "POST /api/v1/auth/register",
+        "POST /api/v1/auth/login",
+        "GET /api/v1/session",
+        "POST /api/v1/dreams",
+        "GET /api/v1/dreams",
+        "GET /api/v1/dreams/{id}",
+        "PUT /api/v1/dreams/{id}",
+        "DELETE /api/v1/dreams/{id}",
+        "GET /api/v1/elements/suggestions",
+        "GET /api/v1/analysis/overview",
+        "GET /api/v1/analysis/themes",
+        "GET /api/v1/analysis/emotions",
+        "GET /api/v1/analysis/wordcloud",
+        "GET /api/v1/reports/weekly",
+        "GET /api/v1/export/markdown",
+        "GET /api/v1/export/json"
+      ],
+      "key_flows": [
+        "首次打开页面后注册或登录并恢复个人工作台",
+        "填写醒来速记表单，保存梦境并看到自动主题和元素结果",
+        "从时间线打开详情，编辑或删除已有记录",
+        "切换分析窗口查看情绪、睡眠、清晰度和主题关联",
+        "查看周报和词云，理解系统给出的证据化提示",
+        "下载 Markdown 或 JSON 个人备份"
+      ],
+      "business_capabilities": [
+        "快速记录梦境叙事与醒来状态",
+        "修订系统推荐的梦境元素分类",
+        "浏览主题线索和证据词",
+        "查看情绪睡眠关联与个人提示",
+        "查看词云和周报快照",
+        "导出可读报告和机器备份"
+      ]
+    },
+    "complexity": {
+      "domain_objects": 9,
+      "workflows": 6,
+      "api_routes": 16,
+      "frontend_surfaces": 7,
+      "frontend_interactions": 18,
+      "background_mechanisms": 2,
+      "professional_rules": 8,
+      "external_formats": 2,
+      "planned_go_files": 58,
+      "planned_go_lines": 5400
+    }
+  },
+  "fingerprint": "0c91de597046bc42d778ff7fba5a112131c7af3c479d79c9008375f095b1d395",
+  "preexisting": false
+}
