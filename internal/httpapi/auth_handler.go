@@ -48,7 +48,7 @@ func (
 		writeError(writer, err)
 		return
 	}
-	security.SetCookie(writer, token, 86400)
+	security.SetCookie(writer, token, a.auth.SessionCookieMaxAge())
 	writeJSON(writer, http.StatusOK, map[string]interface{}{"user": publicUser(user), "token": token})
 }
 func (

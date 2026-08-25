@@ -19,13 +19,32 @@ type Claims struct {
 type TokenCodec struct {
 	secret []byte
 	ttl    time.Duration
+	now    func() time.Time
 }
 
 func NewTokenCodec(
 	secret string,
 	ttl time.Duration,
 ) TokenCodec {
-	return TokenCodec{secret: []byte(secret), ttl: ttl}
+	return TokenCodec{secret: []byte(secret), ttl: ttl, now: time.Now}
+}
+
+// withClock overrides the clock used to stamp and check expirations. It is
+// intended for deterministic tests of the second-granularity boundary, where a
+// real wall clock would let the boundary slip past between Issue and Parse.
+func (c TokenCodec) withClock(now func() time.Time) TokenCodec {
+	copy := c
+	copy.now = now
+	return copy
+}
+
+func (
+	c TokenCodec,
+) clock() time.Time {
+	if c.now != nil {
+		return c.now()
+	}
+	return time.Now()
 }
 
 func (
@@ -36,7 +55,7 @@ func (
 ) (string, error) {
 	header := b64([]byte(`{"alg":"HS256","typ":"DREAM"}`))
 	claims, err := json.Marshal(
-		Claims{UserID: userID, Name: name, ExpiresAt: time.Now().Add(c.ttl).Unix()})
+		Claims{UserID: userID, Name: name, ExpiresAt: c.clock().Add(c.ttl).Unix()})
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +82,10 @@ func (
 	if err := json.Unmarshal(content, &claims); err != nil {
 		return Claims{}, err
 	}
-	if claims.UserID == "" || claims.ExpiresAt < time.Now().Unix() {
+	// exp is second-granularity Unix time. A token whose exp equals the current
+	// Unix second has already entered its expiry second, so it must be rejected
+	// immediately rather than honored for the rest of that tick.
+	if claims.UserID == "" || claims.ExpiresAt <= c.clock().Unix() {
 		return Claims{}, errors.New("令牌已过期")
 	}
 	return claims, nil
