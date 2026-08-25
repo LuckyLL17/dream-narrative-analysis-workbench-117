@@ -94,15 +94,15 @@ func (
 	userID,
 	dreamID string,
 	limit int,
-) ([]analysis.SimilarDream, error) {
+) (analysis.SimilarDreamsResult, error) {
 	target, ok :=
 		s.store.FindDream(
 			userID, dreamID)
 	if !ok {
-		return nil, domain.ErrNotFound
+		return analysis.SimilarDreamsResult{}, domain.ErrNotFound
 	}
 	if limit <= 0 {
-		limit = 8
+		limit = analysis.DefaultSimilarLimit
 	}
 	return analysis.SimilarDreams(target, s.store.AllDreams(userID), limit), nil
 }

@@ -12,10 +12,21 @@ import (
 type SimilarDream struct {
 	Dream        domain.Dream
 	Score        float64
+	Band         string
+	Label        string
 	SharedTags   []string
 	SharedThemes []string
 	SharedWords  []string
 	Reasons      []string
+}
+
+// SimilarDreamsResult bundles the ranked candidates, the shared band
+// description and the effective limit so the HTTP layer and the overview
+// cannot drift apart on boundary semantics or default paging.
+type SimilarDreamsResult struct {
+	Items []SimilarDream
+	Bands []SimilarityBand
+	Limit int
 }
 
 type similarityFeatures struct {
@@ -28,7 +39,7 @@ func SimilarDreams(
 	target domain.Dream,
 	candidates []domain.Dream,
 	limit int,
-) []SimilarDream {
+) SimilarDreamsResult {
 	base := features(target)
 	result := make(
 		[]SimilarDream,
@@ -45,6 +56,8 @@ func SimilarDreams(
 			continue
 		}
 		comparison.Dream = candidate
+		comparison.Band = SimilarityBandName(comparison.Score)
+		comparison.Label = SimilarityLabel(comparison.Score)
 		result = append(result,
 			comparison)
 	}
@@ -56,11 +69,13 @@ func SimilarDreams(
 			return result[i].Score >
 				result[j].Score
 		})
-	if limit > 0 &&
-		len(result) > limit {
+	if limit <= 0 {
+		limit = DefaultSimilarLimit
+	}
+	if len(result) > limit {
 		result = result[:limit]
 	}
-	return result
+	return SimilarDreamsResult{Items: result, Bands: SimilarityBands(), Limit: limit}
 }
 
 func features(
@@ -152,24 +167,60 @@ type SimilarityBand struct {
 	Min   float64
 	Max   float64
 	Label string
+	Note  string
 }
 
+// DefaultSimilarLimit is the single source of truth for the default page
+// size shared between the analysis layer, the service and the HTTP route so
+// every entry point returns the same number of similar dreams.
+const DefaultSimilarLimit = 8
+
+// SimilarityBands describes the similarity segments using left-closed,
+// right-open intervals: weak [0, 0.4), medium [0.4, 0.7), strong [0.7, 1].
+// A score of exactly 0.4 lands in "部分相似" and a score of exactly 0.7
+// lands in "强相似"; there is no gap between adjacent bands.
 func SimilarityBands() []SimilarityBand {
 	return []SimilarityBand{
-		{Name: "strong", Min: 0.75, Max: 1, Label: "强相似"},
-		{Name: "medium", Min: 0.4, Max: 0.7, Label: "部分相似"},
-		{Name: "weak", Min: 0, Max: 0.4, Label: "轻微重合"},
+		{Name: "weak", Min: 0, Max: 0.4, Label: "轻微重合", Note: "0 ≤ 分数 < 0.4：叙事重叠较少，仅作背景参考。"},
+		{Name: "medium", Min: 0.4, Max: 0.7, Label: "部分相似", Note: "0.4 ≤ 分数 < 0.7：存在可追溯的共现线索，建议回看。"},
+		{Name: "strong", Min: 0.7, Max: 1, Label: "强相似", Note: "0.7 ≤ 分数 ≤ 1：多条线索同时重合，优先对照比较。"},
 	}
 }
 
+// SimilarityLabel returns the human-readable band label for a score using the
+// same left-closed, right-open semantics as SimilarityBands. Scores at or
+// above the strong band's minimum (including 1.0) are treated as "强相似";
+// negative scores fall back to "轻微重合".
 func SimilarityLabel(
 	score float64,
 ) string {
-	for i := range SimilarityBands() {
-		band := SimilarityBands()[i]
+	bands := SimilarityBands()
+	for i := range bands {
+		band := bands[i]
 		if score >= band.Min && score < band.Max {
 			return band.Label
 		}
 	}
-	return "轻微重合"
+	if len(bands) > 0 && score >= bands[len(bands)-1].Min {
+		return bands[len(bands)-1].Label
+	}
+	return bands[0].Label
+}
+
+// SimilarityBandName returns the machine band identifier for a score, mirroring
+// SimilarityLabel so callers can label and classify from one source.
+func SimilarityBandName(
+	score float64,
+) string {
+	bands := SimilarityBands()
+	for i := range bands {
+		band := bands[i]
+		if score >= band.Min && score < band.Max {
+			return band.Name
+		}
+	}
+	if len(bands) > 0 && score >= bands[len(bands)-1].Min {
+		return bands[len(bands)-1].Name
+	}
+	return bands[0].Name
 }

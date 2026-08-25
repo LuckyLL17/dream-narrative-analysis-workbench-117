@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"dream117/internal/analysis"
 	"dream117/internal/domain"
 	"dream117/internal/service"
 )
@@ -117,7 +118,7 @@ func (
 		request)
 	items, err :=
 		a.analysis.Similar(
-			user.ID, id, queryInt(request, "limit", 8))
+			user.ID, id, queryInt(request, "limit", analysis.DefaultSimilarLimit))
 	if err != nil {
 		writeError(writer, err)
 		return
