@@ -60,7 +60,6 @@ func (
 	case "sleep-contrast":
 		return analysis.SleepContrast(items)
 	case "theme-pairs":
-		items = deduplicateThemeOrder(items)
 		return analysis.ThemeCooccurrence(items, 24)
 	case "theme-timeline":
 		return analysis.ThemeTimeline(items, 12)
@@ -119,14 +118,6 @@ func (
 	query string,
 ) []text.LexiconEntry {
 	return text.FindLexicon(query)
-}
-
-func deduplicateThemeOrder(items []domain.Dream) []domain.Dream {
-	result := make([]domain.Dream, 0, len(items))
-	for _, item := range items {
-		result = append(result, item)
-	}
-	return result
 }
 
 type NarrativeSample struct {

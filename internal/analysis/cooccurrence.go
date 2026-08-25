@@ -41,7 +41,10 @@ func ThemeCooccurrence(
 		}
 		for left := 0; left < len(names); left++ {
 			for right := left + 1; right < len(names); right++ {
-				key := names[right] + "\x00" + names[left]
+				// Two dreams describing the same set of themes in a different
+				// order are the same unordered pair, so the key must not depend
+				// on the slice order. Canonicalise the two names before hashing.
+				key := pairKey(names[left], names[right])
 				pairs[key]++
 			}
 		}
@@ -140,4 +143,18 @@ func splitPair(
 		}
 	}
 	return []string{value, ""}
+}
+
+// pairKey builds a canonical, order-independent key for an unordered pair of
+// theme names. Whichever name comes first in the dream's slice, the same pair
+// always maps to the same key, so "被追赶—迷路" and "迷路—被追赶" merge into a
+// single co-occurrence edge instead of producing two reversed Count=1 edges.
+func pairKey(
+	left,
+	right string,
+) string {
+	if left <= right {
+		return left + "\x00" + right
+	}
+	return right + "\x00" + left
 }
