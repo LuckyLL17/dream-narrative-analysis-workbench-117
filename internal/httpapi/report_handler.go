@@ -51,9 +51,13 @@ func (
 ) {
 	user, _ := currentUser(
 		request)
+	// Pass the raw instant so rounding cannot push a Sunday-evening timestamp
+	// across midnight into Monday, which would flip the week edge and disagree
+	// with the background refresh. The service derives the week from this same
+	// instant, keeping both entry points on the same window.
 	report, err :=
 		a.reports.Refresh(
-			user.ID, time.Now().UTC().Round(time.Second))
+			user.ID, time.Now().UTC())
 	if err != nil {
 		writeError(writer, err)
 		return

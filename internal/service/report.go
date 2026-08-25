@@ -26,13 +26,15 @@ func (
 	userID string,
 	when time.Time,
 ) (domain.WeeklyReport, error) {
+	// `when` is the single source of truth for both the week edges and the
+	// report timestamps. Deriving them from the same instant guarantees that a
+	// refresh always records the week it actually covered, so the cache key
+	// (report.ID, derived from WeekStart) and the WeekStart/WeekEnd values
+	// agree across HTTP refreshes and background refreshes.
 	start := s.clock.WeekStart(when)
 	end := s.clock.WeekEnd(when)
-	if end.Before(start) {
-		end = start
-	}
 	items := s.store.ListDreams(userID, start, end, "")
-	report := analysis.BuildReport(userID, items, start, end, time.Now().UTC())
+	report := analysis.BuildReport(userID, items, start, end, when)
 	if err := s.store.SaveReport(report); err != nil {
 		return domain.WeeklyReport{}, err
 	}
@@ -43,11 +45,12 @@ func (
 ) Current(
 	userID string,
 ) (domain.WeeklyReport, error) {
-	start := s.clock.WeekStart(time.Now().UTC())
+	now := s.clock.Now()
+	start := s.clock.WeekStart(now)
 	if report, ok := s.store.FindReport(userID, start); ok && report.State == domain.ReportReady {
 		return report, nil
 	}
-	return s.Refresh(userID, time.Now().UTC())
+	return s.Refresh(userID, now)
 }
 func (
 	s *ReportService,
