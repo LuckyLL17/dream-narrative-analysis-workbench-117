@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>梦境叙事工作台</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="grain"></div>
+  <header class="topbar">
+    <a class="brand" href="#top"><span class="brand-mark">✦</span><span>梦境叙事<br><b>工作台</b></span></a>
+    <nav class="nav"><a href="#capture">醒来速记</a><a href="#timeline">时间线</a><a href="#insights">线索分析</a><a href="#weekly">周报</a></nav>
+    <div class="account"><span id="account-name">未登录</span><button id="logout" class="text-button hidden">退出</button></div>
+  </header>
+
+  <main id="top" class="shell">
+    <section id="auth-panel" class="auth-card">
+      <div><p class="eyebrow">PERSONAL DREAM ATLAS</p><h1>给醒来后的<br><em>第一束记忆</em>留个位置。</h1><p class="muted">把片段写下来，系统会帮你追踪反复出现的元素、主题与睡眠线索。它不是诊断，只是一面温柔的回看镜子。</p></div>
+      <form id="auth-form" class="form-card">
+        <div class="segmented"><button type="button" class="active" data-auth-mode="login">登录</button><button type="button" data-auth-mode="register">创建工作台</button></div>
+        <label>邮箱<input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+        <label id="auth-name-wrap" class="hidden">称呼<input id="auth-name" type="text" placeholder="给自己一个称呼"></label>
+        <label>密码<input id="auth-password" type="password" autocomplete="current-password" placeholder="至少 8 个字符" required></label>
+        <button class="primary full" type="submit" id="auth-submit">进入我的工作台</button>
+        <p id="auth-message" class="form-message"></p>
+      </form>
+    </section>
+
+    <section id="workspace" class="hidden">
+      <div class="hero-row"><div><p class="eyebrow">GOOD MORNING, <span id="hero-name">DREAMER</span></p><h1>今天醒来，<br><em>记得什么？</em></h1><p class="muted hero-copy">不必完整，不必解释。先留下一个画面，规律会在时间里自己浮出来。</p></div><div class="moon-card"><span class="moon">◐</span><div><b id="hero-count">0</b><small>条梦境档案</small></div></div></div>
+
+      <section id="capture" class="capture-grid">
+        <div class="section-heading"><p class="eyebrow">01 / CAPTURE</p><h2>醒来速记</h2><p class="muted">用 90 秒保存尚未褪色的叙事。</p></div>
+        <form id="dream-form" class="dream-form">
+          <input id="dream-id" type="hidden">
+          <label class="wide">一个能唤回画面的标题<input id="dream-title" required maxlength="80" placeholder="例如：海边的蓝色车站"></label>
+          <label class="wide">梦里发生了什么？<textarea id="dream-content" required minlength="8" rows="6" placeholder="先写画面和动作，再写醒来后的感受……"></textarea></label>
+          <div class="form-row"><label>梦境日期<input id="dream-date" type="date" required></label><label>醒来时间<input id="wake-time" type="datetime-local" required></label><label>睡眠时长<input id="sleep-hours" type="number" min="0" max="24" step="0.5" value="7"></label></div>
+          <div class="form-row"><label>醒来时的情绪<select id="dream-emotion"><option>平静</option><option>开心</option><option>紧张</option><option>困惑</option><option>害怕</option><option>惊喜</option></select></label><label>梦境清晰度 <output id="clarity-output">6</output>/10<input id="dream-clarity" type="range" min="1" max="10" value="6"></label><label class="check-label"><input id="remember-detail" type="checkbox" checked> 我记得具体细节</label></div>
+          <div><span class="label-title">梦中元素 <small>系统会从文字推荐，你也可以修改</small></span><div id="tag-chips" class="chips"></div><input id="custom-tag" class="tag-input" placeholder="添加自定义元素，回车确认"></div>
+          <div class="form-actions"><button class="primary" type="submit"><span id="dream-submit-text">保存这段记忆</span> <span>↗</span></button><button id="dream-cancel" class="secondary hidden" type="button">取消编辑</button><span id="dream-message" class="form-message"></span></div>
+        </form>
+      </section>
+
+      <section id="timeline" class="timeline-section"><div class="section-heading inline"><div><p class="eyebrow">02 / TIMELINE</p><h2>梦境时间线</h2></div><div class="timeline-tools"><input id="dream-search" placeholder="搜索画面、主题或元素"><select id="range-select"><option value="30">近 30 天</option><option value="90">近 90 天</option><option value="365">全年</option></select></div></div><div id="dream-list" class="dream-list"></div></section>
+
+      <section id="insights" class="insight-section"><div class="section-heading inline"><div><p class="eyebrow">03 / PATTERNS</p><h2>正在浮现的线索</h2></div><div class="range-pills"><button data-days="7">7 天</button><button class="active" data-days="30">30 天</button><button data-days="90">90 天</button></div></div><div id="overview-cards" class="stat-grid"></div><div class="analysis-grid"><div class="panel"><div class="panel-heading"><h3>主题回声</h3><span>出现频次</span></div><div id="theme-bars" class="bars"></div></div><div class="panel"><div class="panel-heading"><h3>醒来情绪</h3><span>时间序列</span></div><div id="emotion-chart" class="emotion-chart"></div></div><div class="panel word-panel"><div class="panel-heading"><h3>词语云</h3><span>你的叙事用词</span></div><div id="word-cloud" class="word-cloud"></div></div><div class="panel"><div class="panel-heading"><h3>睡眠切片</h3><span id="correlation">等待更多记录</span></div><div id="sleep-buckets" class="sleep-buckets"></div></div><div class="panel"><div class="panel-heading"><h3>情绪报告</h3><span>强度与转移</span></div><div id="mood-report" class="analysis-copy"></div></div><div class="panel"><div class="panel-heading"><h3>睡眠对比</h3><span>三种睡眠长度</span></div><div id="sleep-contrast" class="analysis-copy"></div></div><div class="panel"><div class="panel-heading"><h3>主题共现</h3><span>一起出现的线索</span></div><div id="theme-pairs" class="analysis-copy"></div></div><div class="panel"><div class="panel-heading"><h3>高频短语</h3><span>跨日期出现</span></div><div id="phrase-list" class="analysis-copy"></div></div></div><div id="insight-list" class="insight-list"></div></section>
+
+      <section id="signals" class="timeline-section"><div class="section-heading inline"><div><p class="eyebrow">04 / CHANGES</p><h2>最近发生了什么变化</h2></div><span class="muted">把当前半段和前半段放在一起看</span></div><div id="signal-card" class="signal-card"></div><div id="review-card" class="review-card"></div></section>
+      <section id="weekly" class="weekly-section"><div class="section-heading inline"><div><p class="eyebrow">05 / WEEKLY LETTER</p><h2>给下周的自己</h2></div><div><button id="refresh-report" class="secondary">刷新本周报</button><button id="export-md" class="text-button">下载 Markdown</button><button id="export-json" class="text-button">JSON 备份</button></div></div><div id="report-card" class="report-card"></div></section>
+    </section>
+  </main>
+  <footer><span>梦境叙事工作台 · 个人观察工具</span><span>你的记录只存在于当前服务的数据文件中</span></footer>
+  <script src="/app.js"></script>
+</body>
+</html>
