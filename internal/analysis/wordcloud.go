@@ -3,21 +3,22 @@ package analysis
 import (
 	"dream117/internal/domain"
 	"dream117/internal/text"
-	"dream117/pkg/collections"
 )
 
 func WordCloud(
 	items []domain.Dream,
 	limit int,
 ) []domain.WordStat {
-	words := RankedWords(items, limit)
-	return collections.SortByCountName(
-		words,
-		func(item domain.WordStat) int { return item.Count },
-		func(item domain.WordStat) string { return item.Word },
-	)
+	// RankedWords already returns words ordered by the unified weight; do not
+	// re-sort by raw count here, otherwise the title semantic bonus computed
+	// upstream is discarded and the wordcloud diverges from the report and
+	// sentence summary.
+	return RankedWords(items, limit)
 }
 
+// WordCloudSentence renders the word list as a frequency-weighted, weight-
+// ordered summary sentence. It consumes the same ordering produced by
+// RankedWords / WordCloud, so the sentence and the wordcloud always agree.
 func WordCloudSentence(
 	words []domain.WordStat,
 ) string {

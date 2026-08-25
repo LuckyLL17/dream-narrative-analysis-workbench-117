@@ -31,12 +31,20 @@ func Keywords(
 		func(item Keyword) string { return item.Word })
 }
 
+// titleKeywordWeight is the semantic bonus a word earns by appearing in a
+// dream's title. Per the product rule, a title's core term carries more
+// semantic weight than body frequency, so this bonus is deliberately large
+// enough to let a title term rank ahead of a higher-frequency body term.
+// Concretely, a title term present in 2 titles (Weight 164) outranks a body
+// term appearing 7 times (Weight 129), restoring the intended ordering.
+const titleKeywordWeight = 6.0
+
 func titleKeywordBonus(word, title string) float64 {
 	if title == "" {
 		return 0
 	}
 	if KeywordCounts(title, "")[word] > 0 {
-		return 2.5
+		return titleKeywordWeight
 	}
 	return 0
 }

@@ -549,16 +549,38 @@ func RankedWords(
 		d := items[i]
 		collections.MergeCounts(counts, text.KeywordCounts(d.Title, d.Content))
 	}
-	words := collections.TopCounts(counts, limit)
 	result := make(
 		[]domain.WordStat,
 		0,
-		len(words),
+		len(counts),
 	)
-	for i := range words {
-		word := words[i]
+	for word := range counts {
+		count := counts[word]
 		result = append(result,
-			domain.WordStat{Word: word.Name, Count: word.Count, Weight: 10 + word.Count*7 + keywordSemanticWeight(items, word.Name)})
+			domain.WordStat{Word: word, Count: count, Weight: wordWeight(items, word, count)})
+	}
+	// Rank by the unified weight so title-derived semantic bonus and body
+	// frequency flow into a single ordering shared by every output surface.
+	collections.SortBy(result, func(left, right domain.WordStat) bool {
+		if left.Weight == right.Weight {
+			if left.Count == right.Count {
+				return left.Word < right.Word
+			}
+			return left.Count > right.Count
+		}
+		return left.Weight > right.Weight
+	})
+	if limit > 0 && len(result) > limit {
+		result = result[:limit]
 	}
 	return result
+}
+
+// wordWeight derives the single unified weight consumed by the wordcloud
+// API, the analysis report and the sentence summary. It combines a small
+// base, the raw body frequency and the per-dream semantic score (which
+// already accounts for title presence). Title core terms therefore gain
+// enough weight to rank ahead of higher-frequency body terms.
+func wordWeight(items []domain.Dream, word string, count int) int {
+	return 10 + count*7 + keywordSemanticWeight(items, word)
 }

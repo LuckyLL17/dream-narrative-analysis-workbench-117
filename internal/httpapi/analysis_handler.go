@@ -31,9 +31,10 @@ func (
 	user, _ := currentUser(
 		request)
 	path := strings.TrimPrefix(request.URL.Path, "/api/v1/analysis/")
-	if path == "wordcloud" {
-		path = "wordcloud"
-	}
+	// The analysis service returns slices already ordered by the unified
+	// weight (see analysis.RankedWords). writeJSON marshals slice order
+	// verbatim, so the HTTP response preserves that ordering for every
+	// output surface (wordcloud, report, sentence summary).
 	writeJSON(writer, http.StatusOK, a.analysis.Analyze(user.ID, path, a.window(request)))
 }
 func (
