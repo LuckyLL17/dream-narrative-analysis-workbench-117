@@ -24,6 +24,13 @@ func DayStart(value time.Time) time.Time {
 	)
 }
 
+// DayEnd returns the last representable instant of value's calendar day in
+// UTC. Paired with DayStart it forms an inclusive [from, to] day range so a
+// record timestamped at the very end of the selected end day is kept.
+func DayEnd(value time.Time) time.Time {
+	return DayStart(value).Add(24*time.Hour - time.Nanosecond)
+}
+
 func (
 	Clock,
 ) MonthStart(

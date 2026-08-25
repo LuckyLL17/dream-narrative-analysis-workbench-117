@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"dream117/pkg/clock"
+)
 
 type User struct {
 	ID           string
@@ -277,9 +281,6 @@ func (f DreamFilter) Normalized() DreamFilter {
 	if f.PageSize > 100 {
 		f.PageSize = 100
 	}
-	if f.Page > 1 && f.PageSize == 0 {
-		f.Page = 1
-	}
 	if f.MinimumClarity < 0 {
 		f.MinimumClarity = 0
 	}
@@ -288,6 +289,17 @@ func (f DreamFilter) Normalized() DreamFilter {
 	}
 	if f.MaximumSleep < 0 {
 		f.MaximumSleep = 0
+	}
+	// Date bounds are inclusive calendar-day ranges: a bare date (e.g.
+	// "2026-08-02" parsed to midnight) is floored/ceiled so that every
+	// record on the selected end day participates in the search, including
+	// one timestamped at the very last nanosecond of that day. A zero bound
+	// is left untouched so an unset from/to stays an open bound.
+	if !f.From.IsZero() {
+		f.From = clock.DayStart(f.From)
+	}
+	if !f.To.IsZero() {
+		f.To = clock.DayEnd(f.To)
 	}
 	return f
 }

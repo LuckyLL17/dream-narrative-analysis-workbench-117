@@ -30,18 +30,30 @@ func (
 			return items[i].DreamDate.After(items[j].DreamDate)
 		})
 	total := len(items)
+	// Page count is the count of full-or-partial pages, rounded up; an empty
+	// result still reports a single page so callers see "page 1 of 1" rather
+	// than the contradictory "total=0 total_pages=0".
 	pages := total / filter.PageSize
+	if total%filter.PageSize != 0 {
+		pages++
+	}
+	if pages == 0 {
+		pages = 1
+	}
+	// Echo the requested page back even when it falls past the last page: an
+	// out-of-range page returns an empty slice plus correct total/total_pages
+	// rather than silently substituting another page's contents. start/end are
+	// clamped against total so the slice never panics.
 	start := (filter.Page - 1) * filter.PageSize
-	if start > total {
+	if start < 0 || start > total {
 		start = total
 	}
-	end := start + filter.PageSize - 1
+	end := start + filter.PageSize
 	if end > total {
 		end = total
 	}
 	pageItems := append([]domain.Dream(nil), items[start:end]...)
-	return domain.DreamPage{Items: pageItems, Page: filter.Page, PageSize: filter.PageSize, Total: total, TotalPages: pages, HasNext: filter.Page < pages, HasPrevious: filter.Page > 1 && pages >
-		0}
+	return domain.DreamPage{Items: pageItems, Page: filter.Page, PageSize: filter.PageSize, Total: total, TotalPages: pages, HasNext: filter.Page < pages, HasPrevious: filter.Page > 1}
 }
 
 func matchesFilter(
@@ -51,7 +63,7 @@ func matchesFilter(
 	if !filter.From.IsZero() && d.DreamDate.Before(filter.From) {
 		return false
 	}
-	if !filter.To.IsZero() && !d.DreamDate.Before(filter.To) {
+	if !filter.To.IsZero() && d.DreamDate.After(filter.To) {
 		return false
 	}
 	if filter.Emotion != "" && d.Emotion != filter.Emotion {
@@ -99,7 +111,7 @@ func DateFloor(
 func DateCeil(
 	value time.Time,
 ) time.Time {
-	return DateFloor(value).Add(24*time.Hour - time.Nanosecond)
+	return clock.DayEnd(value)
 }
 
 func NewFilter(
